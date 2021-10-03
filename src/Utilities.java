@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Utilities {
@@ -41,6 +42,8 @@ public class Utilities {
                 Game.oldGrid[row][col] = false;
             }
         }
+        Game.currentGen = 0;
+        Game.generations = new ArrayList<>();
     }
 
 

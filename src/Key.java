@@ -83,7 +83,7 @@ public class Key implements KeyListener {
 
                     // GENERATIONS
                     case KeyEvent.VK_LEFT -> {
-                        if (Game.currentGen - 1 >= 0) {
+                        if (Game.currentGen - 1 > 0) {
                             Game.paused = true;
                             Game.currentGen--;
                         }
