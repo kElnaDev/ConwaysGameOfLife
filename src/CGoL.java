@@ -4,9 +4,10 @@ import java.awt.event.ComponentEvent;
 public class CGoL {
     static Thread thread;
     static Window window;
+    static Game game;
 
     public static void main(String[] args) {
-        Game game = new Game(900, 900);
+        game = new Game(900, 900);
         window = new Window("Conway's Game of Life", game);
 
         Key keyListener = new Key();

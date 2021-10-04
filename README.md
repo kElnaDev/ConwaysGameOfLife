@@ -19,6 +19,8 @@ My Java version of the famous "Conway's Game of Life"
 
 - `+` / `=` increases the ticks per second by 5 (capping at 60)
 - `-` / `_` decreases the ticks per second by 5 (ending at 5)
+- `]` increases the box size by 1 (capping at 20)
+- `[` decreases the box size by 1 (ending at 1)
 
 - Left clicking on the board (incl. dragging) draws on the board, temporarily pausing the game if not already paused
 - Right clicking on the board (incl. dragging) erases on the board, temporarily pausing the game if not already paused

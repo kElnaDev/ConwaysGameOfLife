@@ -76,6 +76,7 @@ public class Game extends JPanel implements Runnable {
         double delta = 0;
         long timer = System.currentTimeMillis();
         int frames = 0;
+        int fpsUpdateCounter = 0; // counts how many times the fps updates
         while (running) {
             double ns = 1000000000 / amountOfTicks;
             long now = System.nanoTime();
@@ -90,20 +91,21 @@ public class Game extends JPanel implements Runnable {
 
             if (System.currentTimeMillis() - timer > 1000) {
                 timer += 1000;
-                System.out.println("FPS: " + frames);
+                System.out.println("[" + fpsUpdateCounter + "] FPS: " + frames);
                 fps = frames;
                 frames = 0;
+                fpsUpdateCounter++;
             }
         }
 
         CGoL.stop();
     }
 
-
     @Override
     public void paint(Graphics g) {
+
         if (resized) {
-            Utilities.handleResize(this);
+            Utilities.handleResize();
             resized = false;
         }
 
@@ -173,6 +175,8 @@ public class Game extends JPanel implements Runnable {
 
         graphicsObj.setFont(fontM);
         graphicsObj.drawString("FPS: " + fps + "  TPS: " + (int) amountOfTicks, width - border[1] - 170, 33);
+
+        graphicsObj.drawString("Box Size: " + boxSize, width/2 - 60, 33);
 
         if (paused) {
             // size info

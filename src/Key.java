@@ -22,7 +22,7 @@ public class Key implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         keyEvent = e;
-        System.out.println("Key pressed: " + keyEvent.getKeyChar());
+        System.out.println("Key pressed: \"" + keyEvent.getKeyChar() + "\" (" + keyEvent.getKeyCode() + ")");
     }
 
     @Override
@@ -117,6 +117,20 @@ public class Key implements KeyListener {
                     case KeyEvent.VK_EQUALS, KeyEvent.VK_PLUS -> {
                         if (Game.amountOfTicks + 5 <= 60) Game.amountOfTicks += 5;
                         System.out.println("Game now running at " + Game.amountOfTicks + " ticks per second");
+                    }
+
+                    // BOX SIZE
+                    case KeyEvent.VK_OPEN_BRACKET -> {
+                        if (Game.boxSize - 1 >= 1) {
+                            Game.boxSize--;
+                            Utilities.handleResize();
+                        }
+                    }
+                    case KeyEvent.VK_CLOSE_BRACKET -> {
+                        if (Game.boxSize + 1 <= 20) {
+                            Game.boxSize++;
+                            Utilities.handleResize();
+                        }
                     }
                 }
             }

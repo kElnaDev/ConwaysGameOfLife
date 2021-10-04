@@ -15,9 +15,9 @@ public class Utilities {
         Game.paused = false;
     }
 
-    public static void handleResize(Game game) {
-        Game.width = game.getWidth();
-        Game.height = game.getHeight();
+    public static void handleResize() {
+        Game.width = CGoL.game.getWidth();
+        Game.height = CGoL.game.getHeight();
         Game.rows = (Game.height - Game.border[0] - Game.border[2]) / Game.boxSize;
         Game.cols = (Game.width - Game.border[1] - Game.border [3]) / Game.boxSize;
 
