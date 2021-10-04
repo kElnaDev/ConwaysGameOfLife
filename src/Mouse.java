@@ -1,21 +1,27 @@
 import javax.swing.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 
-public class Mouse implements MouseListener, MouseMotionListener {
+public class Mouse implements MouseListener, MouseMotionListener, MouseWheelListener {
 
+    // UTILITIES
     public static boolean mousePressed = false;
+    public static boolean mouseQueued = false;
     public static int trueX, trueY;
     public static int boxX, boxY;
     public static String button;
     static boolean mouseHeld = false;
+    static int direction = 0;
+    static boolean scrolledInLastFrame = false;
+    static double zoomSpeed = 0.1;
 
+
+    // GENERAL
     @Override
     public void mouseClicked(MouseEvent e) {}
 
     @Override
     public void mousePressed(MouseEvent e) {
+        mouseQueued = true;
         mousePressed = true;
         trueX = e.getX();
         trueY = e.getY();
@@ -38,6 +44,8 @@ public class Mouse implements MouseListener, MouseMotionListener {
     @Override
     public void mouseExited(MouseEvent e) {}
 
+
+    // DRAG
     @Override
     public void mouseDragged(MouseEvent e) {
         trueX = e.getX();
@@ -49,20 +57,38 @@ public class Mouse implements MouseListener, MouseMotionListener {
     @Override
     public void mouseMoved(MouseEvent e) {}
 
+
+    // WHEEL
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        direction = e.getWheelRotation();
+        scrolledInLastFrame = true;
+    }
+
+
+    // INTERPRETATION
     public static void interpret() {
-        if (Mouse.mousePressed) {
+        if (mousePressed || mouseQueued) {
             mouseHeld = true;
 
             if (Game.currentGen == Game.generations.size()) {
                 if (Game.paused) Game.renderWhilePaused = true;
 
-                if (Mouse.boxX > -1 && Mouse.boxX < Game.cols && Mouse.boxY > -1 && Mouse.boxY < Game.rows) {
-                    Game.oldGrid[Mouse.boxY + 1][Mouse.boxX + 1] = (Mouse.button.equals("left"));
-                    Game.grid[Mouse.boxY + 1][Mouse.boxX + 1] = (Mouse.button.equals("left"));
+                if (boxX > -1 && boxX < Game.cols && boxY > -1 && boxY < Game.rows) {
+                    Game.oldGrid[boxY + 1][boxX + 1] = (button.equals("left")) ? 255 : 0;
+                    Game.grid[boxY + 1][boxX + 1] = (button.equals("left")) ? 255 : 0;
                 }
             }
+            mouseQueued = false;
         } else {
             mouseHeld = false;
+        }
+
+        if (scrolledInLastFrame) {
+            if ((int) (Game.boxSize * (Game.zoom - (zoomSpeed * direction))) >= 1) {
+                Game.zoom -= zoomSpeed * direction;
+            }
+            scrolledInLastFrame = false;
         }
     }
 }

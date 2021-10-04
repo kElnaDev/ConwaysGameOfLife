@@ -15,6 +15,7 @@ public class Key implements KeyListener {
     static boolean holdingKey = false;
     static boolean interpretKey = true;
     static boolean keyPressed = false;
+    static boolean keyQueued = false;
 
     @Override
     public void keyTyped(KeyEvent e) {}
@@ -22,6 +23,7 @@ public class Key implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         keyEvent = e;
+        keyQueued = true;
         System.out.println("Key pressed: \"" + keyEvent.getKeyChar() + "\" (" + keyEvent.getKeyCode() + ")");
     }
 

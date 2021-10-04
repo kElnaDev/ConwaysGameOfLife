@@ -20,24 +20,27 @@ public class Game extends JPanel implements Runnable {
         */
 
     // Sizing
-    static int rows, cols, boxSize = 10;
-    static int width, height;
-    static int[] border = {50, 10, 10, 10};
+    public static int rows;
+    public static int cols;
+    public static int boxSize = 10;
+    public static int width;
+    public static int height;
+    public static int maxBoardWidth;
+    public static int maxBoardHeight;
+    public static int trueBoxSize = boxSize;
+    public static int[] border = {50, 10, 10, 10};
         // follows CSS border (top, right, bottom, left) because I'm used to it, I guess
-    static boolean resized = false;
+    public static boolean resized = false;
+    public static int resizedWidth, resizedHeight;
+    public static double zoom = 1, oldZoom = zoom;
 
     // Generations
-    static boolean[][] grid, oldGrid;
-    static ArrayList<boolean[][]> generations = new ArrayList<>();
-    static int currentGen = 0;
+    public static int[][] grid, oldGrid;
+    public static ArrayList<int[][]> generations = new ArrayList<>();
+    public static int currentGen = 0;
 
     // Randomness settings
     static double randThreshold = 0.5;
-
-    // Colours
-    public static Color midnight = new Color(19, 19, 19),
-            evening = new Color(31, 31, 31),
-            dark = new Color(45, 45, 45);
 
     // Fonts
     public static Font fontL, fontM, fontS; // Small
@@ -45,6 +48,8 @@ public class Game extends JPanel implements Runnable {
     public Game(int width, int height) {
         Game.width = width;
         Game.height = height;
+        Game.maxBoardWidth = Game.width - Game.border[1] - Game.border[3];
+        Game.maxBoardHeight = Game.height - Game.border[0] - Game.border[2];
 
         Dimension size = new Dimension(width, height);
         this.setMinimumSize(size);
@@ -103,19 +108,31 @@ public class Game extends JPanel implements Runnable {
 
     @Override
     public void paint(Graphics g) {
+        // zoom & resize handling - LEAVE AT TOP AS IT CHANGES WIDTH & HEIGHT
+        if (zoom != oldZoom) {
+            System.out.println("t");
+            Utilities.handleResize();
+            oldZoom = zoom;
+        }
 
         if (resized) {
-            Utilities.handleResize();
+            Utilities.handleResize(resizedWidth, resizedHeight);
             resized = false;
         }
 
+
+        // Background
         Graphics2D graphicsObj = (Graphics2D) g;
-        graphicsObj.setPaint(evening);
+        graphicsObj.setPaint(Utilities.getColour("evening"));
         graphicsObj.fillRect(0, 0, width, height);
 
+
+        // User input
         Key.interpret();
         Mouse.interpret();
 
+
+        // Sync errors
         if (firstFrame) {
             firstFrame = false;
             if (Mouse.mouseHeld || renderWhilePaused)
@@ -123,44 +140,61 @@ public class Game extends JPanel implements Runnable {
             return;
         }
 
-        // Update grid
-        if ((!paused && !Mouse.mouseHeld) || calcCurrentFrame) generations.add(new boolean[rows + 2][cols + 2]);
+
+        // Update & draw grid
+        if (!paused && !Mouse.mouseHeld) calcCurrentFrame = true;
+
+        trueBoxSize = (int) (boxSize * zoom);
+        if (calcCurrentFrame) generations.add(new int[rows + 2][cols + 2]);
         for (int row = 0; row < rows + 2; row++) {
             for (int col = 0; col < cols + 2; col++) {
                 if (row == 0 || col == 0 || row == rows + 1 || col == cols + 1) {
-                    if ((!paused && !Mouse.mouseHeld) || calcCurrentFrame) {
-                        generations.get(currentGen)[row][col] = false;
+                    if (calcCurrentFrame) {
+                        generations.get(currentGen)[row][col] = 0;
                     }
                     continue;
                 }
 
-                if ((!paused && !Mouse.mouseHeld) || calcCurrentFrame) {
+                if (calcCurrentFrame) {
                     int aliveNeighbours = Utilities.getNumOfAliveNeighbours(row, col);
-                    if (aliveNeighbours < 2 || aliveNeighbours > 3) {
-                        grid[row][col] = false;
-                    } else if (aliveNeighbours == 3) {
-                        grid[row][col] = true;
+                    if (aliveNeighbours == 3) {
+                        grid[row][col] = 255;
+                    } else if (grid[row][col] < 255 && grid[row][col] != 0) {
+                        grid[row][col] -= (grid[row][col] - 2 > 0) ? 2 : grid[row][col];
+                    } else if ((aliveNeighbours < 2 || aliveNeighbours > 3) && grid[row][col] == 255) {
+                        grid[row][col] = 150;
                     }
 
                     generations.get(currentGen)[row][col] = grid[row][col];
 
-                    if (generations.get(currentGen)[row][col]) graphicsObj.setPaint(Color.WHITE);
-                    else graphicsObj.setPaint(midnight);
+                    if (generations.get(currentGen)[row][col] > 0)
+                        graphicsObj.setPaint(Utilities.getColour("white", generations.get(currentGen)[row][col]));
+                    else graphicsObj.setPaint(Utilities.getColour("midnight"));
                 } else if (Mouse.mouseHeld || renderWhilePaused) {
-                    if (grid[row][col]) graphicsObj.setPaint(Color.WHITE);
-                    else graphicsObj.setPaint(dark);
+                    if (grid[row][col] == 255) graphicsObj.setPaint(Utilities.getColour("white", grid[row][col]));
+                    else graphicsObj.setPaint(Utilities.getColour("white", grid[row][col] + 10));
                 } else {
-                    if (generations.get(currentGen - 1)[row][col]) graphicsObj.setPaint(Color.WHITE);
-                    else graphicsObj.setPaint(dark);
+                    try {
+                        if (generations.get(currentGen - 1)[row][col] == 255)
+                            graphicsObj.setPaint(Utilities.getColour("white", generations.get(currentGen - 1)[row][col]));
+                        else
+                            graphicsObj.setPaint(Utilities.getColour("white", generations.get(currentGen - 1)[row][col] + 10));
+                    } catch (ArrayIndexOutOfBoundsException e) {
+                        graphicsObj.setPaint(Utilities.getColour("white", 10));
+                    }
                 }
 
-                graphicsObj.fillRect((col - 1) * boxSize + border[3], (row - 1) * boxSize + border[0], boxSize, boxSize);
+                graphicsObj.fillRect(
+                        (int) ((col - 1) * boxSize * zoom) + border[3],
+                        (int) ((row - 1) * boxSize * zoom) + border[0],
+                        trueBoxSize, trueBoxSize
+                );
             }
         }
 
 
         // Update old grid
-        if ((!paused && !Mouse.mouseHeld) || calcCurrentFrame) {
+        if (calcCurrentFrame) {
             for (int row = 1; row <= rows; row++) {
                 if (cols >= 0) System.arraycopy(grid[row], 1, oldGrid[row], 1, cols);
             }
@@ -188,7 +222,7 @@ public class Game extends JPanel implements Runnable {
             int y = border[0] + margin;
 
             // background
-            graphicsObj.setPaint(midnight);
+            graphicsObj.setPaint(Utilities.getColour("midnight"));
             graphicsObj.fillRoundRect(
                     x - padding, y - padding, textWidth + padding*2, textHeight + padding*2,
                     10, 10
