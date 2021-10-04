@@ -5,7 +5,7 @@ My Java version of the famous "Conway's Game of Life"
 
 ## Controls
 - `R` randomises the board.
-- `C` clears the board.
+- `C` clears the board and resets the generation history.
 - `P` pauses/unpauses the game (you can only unpause on the latest generation).
 
 - `1` sets the randomness threshold so that there is a 30% chance of a cell being alive when you press `R`.
